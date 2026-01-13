@@ -1,4 +1,9 @@
-apply plugin: 'com.android.application'
+plugins {
+    id("com.android.application")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+}
+
+
 
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
@@ -27,6 +32,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

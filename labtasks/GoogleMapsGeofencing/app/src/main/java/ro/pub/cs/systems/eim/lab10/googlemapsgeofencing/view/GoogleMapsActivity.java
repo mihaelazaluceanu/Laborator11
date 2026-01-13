@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.location.Location;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -180,7 +182,48 @@ public class GoogleMapsActivity extends AppCompatActivity  implements GoogleApiC
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         Intent intent = new Intent(this, GeofenceTrackerIntentService.class);
-        geofenceTrackerPendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+
+// Check if FLAG_MUTABLE is available (it is on Android 12 / API 31 and newer)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Add the FLAG_MUTABLE to the existing flags
+            flags |= PendingIntent.FLAG_MUTABLE;
+        }
+
+// Create the PendingIntent with the combined flags
+        geofenceTrackerPendingIntent = PendingIntent.getService(
+                this,
+                0,
+                intent,
+                flags
+        );
+
+
+
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            geofenceTrackerPendingIntent = PendingIntent.getService(
+//                    this,
+//                    0,
+//                    intent,
+//                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE
+//            );
+//        } else {
+//            geofenceTrackerPendingIntent = PendingIntent.getService(
+//                    this,
+//                    0,
+//                    intent,
+//                    PendingIntent.FLAG_UPDATE_CURRENT
+//            );
+//        }
+
+
+//        geofenceTrackerPendingIntent = PendingIntent.getService(
+//                this,
+//                0,
+//                intent,
+//                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+//        );
     }
 
     @Override
