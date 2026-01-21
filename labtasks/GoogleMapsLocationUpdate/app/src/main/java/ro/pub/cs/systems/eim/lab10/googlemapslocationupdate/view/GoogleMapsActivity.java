@@ -1,5 +1,7 @@
 package ro.pub.cs.systems.eim.lab10.googlemapslocationupdate.view;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import androidx.core.app.ActivityCompat;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -80,9 +83,7 @@ public class GoogleMapsActivity extends AppCompatActivity implements GoogleApiCl
             double longitudeValue = Double.parseDouble(longitudeContent);
 
             navigateToLocation(latitudeValue, longitudeValue);
-
         }
-
     }
 
     private LocationUpdatesStatusButtonClickListener locationUpdatesStatusButtonClickListener = new LocationUpdatesStatusButtonClickListener();
@@ -98,7 +99,6 @@ public class GoogleMapsActivity extends AppCompatActivity implements GoogleApiCl
                 stopLocationUpdates();
             }
         }
-
     }
 
     private MapTypeSpinnerListener mapTypeSpinnerListener = new MapTypeSpinnerListener();
@@ -171,7 +171,6 @@ public class GoogleMapsActivity extends AppCompatActivity implements GoogleApiCl
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     MY_PERMISSIONS_REQUEST_READ_FINE_LOCATION );
         }
-
     }
 
     @Override
@@ -266,29 +265,71 @@ public class GoogleMapsActivity extends AppCompatActivity implements GoogleApiCl
         Log.i(Constants.TAG, "onConnectionFailed() callback method has been invoked");
     }
 
+
     private void startLocationUpdates() {
+        try {
+            // TODO exercise 7a
+            // invoke the requestLocationUpdates() method from FusedLocationProviderApi class
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+            // enable the locationUpdatesStatus
+            locationUpdatesStatus = true;
+            // enable the current location on Google Map
+            googleMap.setMyLocationEnabled(true);
+            // update the locationUpdatesStatusButton text & color
+            locationUpdatesStatusButton.setText(R.string.stop_location_updates);
+            locationUpdatesStatusButton.setBackgroundColor(getResources().getColor(R.color.colorRed));
+            // navigate to current position (lastLocation), if available
+            if (lastLocation != null) {
+                CameraPosition cameraPosition = new CameraPosition.Builder().target(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))
+                        .build();
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }
 
-        // TODO exercise 7a
-        // invoke the requestLocationUpdates() method from FusedLocationProviderApi class
-        // enable the locationUpdatesStatus
-        // enable the current location on Google Map
-        // update the locationUpdatesStatusButton text & color
-        // navigate to current position (lastLocation), if available
-        // disable the latitudeEditText, longitudeEditText, navigateToLocationButton widgets
-        // the whole routine should be put in a try ... catch block for SecurityExeption
-
+            // disable the latitudeEditText, longitudeEditText, navigateToLocationButton widgets
+            latitudeEditText.setEnabled(false);
+            longitudeEditText.setEnabled(false);
+            navigateToLocationButton.setEnabled(false);
+            // the whole routine should be put in a try ... catch block for SecurityExeption
+        } catch (SecurityException e) {
+            Log.d(Constants.TAG, e.getMessage());
+        }
     }
 
     private void stopLocationUpdates() {
 
         // TODO exercise 7b
-        // invoke the removeLocationUpdates() method from FusedLocationProviderApi class
-        // disable the locationUpdatesStatus
-        // disable the current location on Google Map
-        // update the locationUpdatesStatusButton text & color
-        // enable the latitudeEditText, longitudeEditText, navigateToLocationButton widgets	and reset their content
-        // the whole routine should be put in a try ... catch block for SecurityExeption
+        try {
+            // invoke the removeLocationUpdates() method from FusedLocationProviderApi class
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+            // disable the locationUpdatesStatus
+            locationUpdatesStatus = false;
+            // disable the current location on Google Map
+            googleMap.setMyLocationEnabled(false);
+            // update the locationUpdatesStatusButton text & color
+            locationUpdatesStatusButton.setText(R.string.start_location_updates);
+            locationUpdatesStatusButton.setBackgroundColor(getResources().getColor(R.color.colorGreen));
+            // enable the latitudeEditText, longitudeEditText, navigateToLocationButton widgets	and reset their content
+            latitudeEditText.setEnabled(true);
+            latitudeEditText.setText("");
 
+            longitudeEditText.setEnabled(true);
+            longitudeEditText.setText("");
+
+            navigateToLocationButton.setEnabled(true);
+            // the whole routine should be put in a try ... catch block for SecurityExeption
+        } catch (SecurityException e) {
+            Log.d(Constants.TAG, e.getMessage());
+        }
     }
 
     @Override
@@ -297,5 +338,4 @@ public class GoogleMapsActivity extends AppCompatActivity implements GoogleApiCl
         lastLocation = location;
         navigateToLocation(lastLocation);
     }
-
 }

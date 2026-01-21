@@ -9,6 +9,15 @@ android {
         targetSdk = 34
         versionCode 1
         versionName "1.0"
+
+        // Citim cheia din local.properties manual
+        Properties properties = new Properties()
+        if (rootProject.file("local.properties").exists()) {
+            properties.load(rootProject.file("local.properties").newDataInputStream())
+        }
+
+        // Definim placeholder-ul pe care îl urlă eroarea
+        manifestPlaceholders = [MAPS_API_KEY: properties.getProperty("MAPS_API_KEY", "CHEIE_LIPSA")]
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
